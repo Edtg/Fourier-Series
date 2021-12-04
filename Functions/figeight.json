@@ -1,0 +1,40 @@
+{
+    "vectors": [
+        {
+            "amplitude": 50,
+            "frequency": 1,
+            "function": "sin",
+            "direction": -1
+        },
+        {
+            "amplitude": 40,
+            "frequency": 1,
+            "function": "sin",
+            "direction": 1
+        },
+        {
+            "amplitude": 35,
+            "frequency": 2,
+            "function": "sin",
+            "direction": -1
+        },
+        {
+            "amplitude": 15,
+            "frequency": 3,
+            "function": "sin",
+            "direction": 1
+        },
+        {
+            "amplitude": 10,
+            "frequency": 3,
+            "function": "sin",
+            "direction": -1
+        },
+        {
+            "amplitude": 5,
+            "frequency": 2,
+            "function": "sin",
+            "direction": 1
+        }
+    ]
+}
