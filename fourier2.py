@@ -1,5 +1,7 @@
-import math, pygame, json
+import math, pygame, json, os
 from pygame.constants import K_r
+import tkinter as tk
+from tkinter import filedialog
 pygame.init()
 
 size = width, height = 1000, 600
@@ -22,6 +24,7 @@ centrepos = (200, 300)
 
 vectors = []
 isLoaded = False
+currentFilename = ""
 
 showVectors = True
 showVectorRadius = False
@@ -62,10 +65,11 @@ class waveFunction:
         self.direction = direction
 
 
-def LoadVectors(filename="figeight.json"):
+def LoadVectors(reload=True):
     global isLoaded
     global time
     global vectors
+    global currentFilename
     oldvectors = vectors
     vectors.clear()
     time = 0
@@ -74,7 +78,11 @@ def LoadVectors(filename="figeight.json"):
     #functions = ["sin", "sin", "sin", "sin", "sin"]
     #directions = [-1, 1, -1, 1, -1] # (anti)clockwise
     try:
-        f = open("Functions/" + filename)
+        if reload == False:
+            currentFilename = filedialog.askopenfilename(filetypes=(("json files", "*.json"), ("All files", "*.*")),
+                title="Open file",
+                initialdir=os.getcwd())
+        f = open(currentFilename)
         data = json.loads(f.read())
         f.close()
         for v in data["vectors"]:
@@ -92,13 +100,18 @@ def LoadVectors(filename="figeight.json"):
 
 #LoadVectors()
 
+root = tk.Tk()
+root.withdraw()
+
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_r:
-                LoadVectors("figeight2.json")
+                LoadVectors(True)
+            elif event.key == pygame.K_o:
+                LoadVectors(False)
 
     screen.fill(white)
 
