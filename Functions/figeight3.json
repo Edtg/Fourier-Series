@@ -1,0 +1,22 @@
+{
+    "vectors": [
+        {
+            "amplitude": 50,
+            "frequency": 1,
+            "function": "cos",
+            "direction": 1
+        },
+        {
+            "amplitude": 25,
+            "frequency": 1,
+            "function": "cos",
+            "direction": -1
+        },
+        {
+            "amplitude": 25,
+            "frequency": 3,
+            "function": "cos",
+            "direction": 1
+        }
+    ]
+}
