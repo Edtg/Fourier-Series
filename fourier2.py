@@ -1,5 +1,4 @@
 import math, pygame, json
-from PyQt5.QtWidgets import (QMainWindow, QGridLayout,QPushButton, QApplication, QWidget)
 from pygame.constants import K_r
 pygame.init()
 
@@ -75,7 +74,7 @@ def LoadVectors(filename="figeight.json"):
     #functions = ["sin", "sin", "sin", "sin", "sin"]
     #directions = [-1, 1, -1, 1, -1] # (anti)clockwise
     try:
-        f = open("Fourier/Functions/" + filename)
+        f = open("Functions/" + filename)
         data = json.loads(f.read())
         f.close()
         for v in data["vectors"]:
@@ -88,21 +87,6 @@ def LoadVectors(filename="figeight.json"):
 
 
 # TODO: Add GUI to update curves
-class basicWindow(QMainWindow):
-    def __init__(self):
-        super().__init__()
-        Widget = QWidget()
-        self.setCentralWidget(Widget)
-
-        grid_layout = QGridLayout()
-        Widget.setLayout(grid_layout)
-
-        for x in range(3):
-            for y in range(3):
-                button = QPushButton(str(str(3*x+y)))
-                grid_layout.addWidget(button, x, y)
-        
-        self.setWindowTitle('Basic Grid Layout')
 
 # TODO: Update curves while program running
 
