@@ -29,9 +29,10 @@ currentFilename = ""
 showVectors = True
 showVectorRadius = False
 showGraph = True
-showVectorGraphRelation = False
+showVectorGraphRelation = True
 showVectorTrace = True
 
+# Class for wave functions/rotating vectors
 class waveFunction:
     def __init__(self, amplitude, frequency, function="sin", direction = 1):
         self.screen = pygame.display.get_surface()
@@ -41,6 +42,7 @@ class waveFunction:
         self.function = function
         self.direction = direction
     
+    # Updates the rotation of the vector
     def update(self, pos, time):
         time = time * self.direction
         if self.function == "sin":
@@ -50,20 +52,28 @@ class waveFunction:
             self.x = pos[0] + (self.amplitude * math.sin(time * self.frequency))
             self.y = pos[1] + (self.amplitude * math.cos(time * self.frequency))
 
+    # Draws the rotating vector
     def draw(self, pos, showRadius):
         if showRadius:
             pygame.draw.circle(self.screen, black, pos, self.amplitude, 1)
         pygame.draw.line(self.screen, blue, pos, (self.x, self.y))
     
+    # Gets the position on the radius of the vectors rotation
     def getRadialPos(self):
         return (self.x, self.y)
     
+    # Sets the functions properties
     def setProperties(self, radius, frequency, function, direction):
         self.radius = radius
         self.frequency = frequency
         self.function = function
         self.direction = direction
 
+
+# Amplitude = Radius
+# Frequency = speed
+# Function = Sin/Cos
+# Direction = Clockwise/Anticlockwise
 
 def LoadVectors(reload=True):
     global isLoaded
@@ -73,10 +83,6 @@ def LoadVectors(reload=True):
     oldvectors = vectors
     vectors.clear()
     time = 0
-    #amplitudes = [50, 40, 35, 15, 10] # radius
-    #frequencies = [1, 1, 2, 3, 3] # n
-    #functions = ["sin", "sin", "sin", "sin", "sin"]
-    #directions = [-1, 1, -1, 1, -1] # (anti)clockwise
     try:
         if reload == False:
             currentFilename = filedialog.askopenfilename(filetypes=(("json files", "*.json"), ("All files", "*.*")),
@@ -98,8 +104,7 @@ def LoadVectors(reload=True):
 
 # TODO: Update curves while program running
 
-#LoadVectors()
-
+# Hide tkinter window
 root = tk.Tk()
 root.withdraw()
 
@@ -108,13 +113,16 @@ while running:
         if event.type == pygame.QUIT:
             running = False
         elif event.type == pygame.KEYDOWN:
+            # Reload file
             if event.key == pygame.K_r:
                 LoadVectors(True)
+            # Open file
             elif event.key == pygame.K_o:
                 LoadVectors(False)
 
     screen.fill(white)
 
+    # Only continue if file is open
     if isLoaded == False:
         pygame.display.update()
         continue
