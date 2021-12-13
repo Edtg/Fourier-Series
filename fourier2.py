@@ -1,4 +1,4 @@
-import math, pygame, json, os
+import math, pygame, json, os, string, threading
 from pygame.constants import K_r
 import tkinter as tk
 from tkinter import filedialog
@@ -18,6 +18,7 @@ running = True
 FPS = 60
 clock = pygame.time.Clock()
 time = 0
+paused = False
 points = []
 tracePoints = []
 centrepos = (200, 300)
@@ -27,7 +28,7 @@ isLoaded = False
 currentFilename = ""
 
 showVectors = True
-showVectorRadius = False
+showVectorRadius = True
 showGraph = True
 showVectorGraphRelation = True
 showVectorTrace = True
@@ -69,6 +70,157 @@ class waveFunction:
         self.function = function
         self.direction = direction
 
+    def ParseEquation(self, equation, n):
+        a = frequency = 0
+        function = ""
+        direction = 1
+
+        e = []
+
+        currentNumber = ""
+        currentLetter = ""
+        lastItem = ""
+        # Break down string into array of operations
+        for i in equation:
+            if i in map(str, list(range(10))):
+                #print("number")
+                currentNumber += i
+                if lastItem == "L":
+                    e.append(currentLetter)
+                    currentLetter = ""
+                lastItem = "N"
+            elif i in string.ascii_lowercase:
+                #print("letter")
+                currentLetter += i
+                if lastItem == "N":
+                    e.append(currentNumber)
+                    currentNumber = ""
+                lastItem = "L"
+            elif i in ["(", ")"]:
+                #print("Bracket")
+                if lastItem == "L":
+                    e.append(currentLetter)
+                    currentLetter = ""
+                elif lastItem == "N":
+                    e.append(currentNumber)
+                    currentNumber = ""
+                e.append(i)
+                lastItem = "B"
+            elif i in ["+", "-", "*", "/", "^"]:
+                #print("Operator")
+                if lastItem == "L":
+                    e.append(currentLetter)
+                    currentLetter = ""
+                elif lastItem == "N":
+                    e.append(currentNumber)
+                    currentNumber = ""
+                e.append(i)
+                lastItem = "O"
+            elif i == " ":
+                if lastItem == "L":
+                    e.append(currentLetter)
+                    currentLetter = ""
+                elif lastItem == "N":
+                    e.append(currentNumber)
+                    currentNumber = ""
+                lastItem = ""
+        
+        print(e)
+        self.amplitude = float(self.Evaluate(e, n)) * 20
+        if self.amplitude < 0:
+            self.direction = -1
+        # Brackets pass
+
+        # Division pass
+        # Multiplication pass
+        # Addition pass
+        # Subtraction pass
+        # etc...
+
+        return (a, frequency, function, direction)
+
+    # Evaluates an expression given as an array
+    def Evaluate(self, expression, n):
+        #print("Evaluating " + "','".join(expression))
+        newExpression = []
+        depth = 0
+        toEvaluate = []
+        if len(expression) == 0:
+            return ""
+
+        if "(" in expression or ")" in expression:
+            for i in expression:
+                if depth >= 1:
+                    toEvaluate.append(i)
+                else:
+                    if i != "(" and i != ")":
+                        newExpression.append(i)
+                
+                if i == "(":
+                    depth += 1
+                if i == ")":
+                    depth -= 1
+                    if depth == 0:
+                        toEvaluate.pop()
+                        result = self.Evaluate(toEvaluate, n)
+                        if result != "":
+                            newExpression.append(result)
+                        toEvaluate.clear()
+        else:
+            newExpression = expression
+
+        print("Evaluating" + "','".join(newExpression))
+
+        if len(newExpression) == 1:
+            if newExpression[0] == "x":
+                self.frequency = 1
+            return newExpression[0]
+        
+        lhs = newExpression[0]
+        rhs = operator = ""
+        try:
+            rhs = str(float(newExpression[1]))
+            operator = "*"
+        except:
+            if newExpression[1] in ["sin", "cos"]:
+                operator = "*"
+                rhs = newExpression[1]
+            else:
+                operator = newExpression[1]
+                rhs = newExpression[2]
+        
+        if lhs == "n":
+            lhs = n
+        
+        if rhs == "n":
+            rhs = n
+
+        if rhs == "x":
+            self.frequency = lhs
+            return ""
+        
+        if lhs == "x":
+            self.frequency = rhs
+            return ""
+
+        if rhs in ["sin", "cos"]:
+            self.function = rhs
+            return lhs
+
+        returnValue = 0
+        if operator == "/":
+            returnValue = float(lhs) / float(rhs)
+        elif operator == "*":
+            returnValue = float(lhs) * float(rhs)
+        elif operator == "+":
+            returnValue = float(lhs) + float(rhs)
+        elif operator == "-":
+            returnValue = float(lhs) - float(rhs)
+        elif operator == "^":
+            returnValue = math.pow(float(lhs), float(rhs))
+        
+        return str(returnValue)
+
 
 # Amplitude = Radius
 # Frequency = speed
@@ -100,6 +252,43 @@ def LoadVectors(reload=True):
         vectors = oldvectors
 
 
+def LoadEquation(accuracy=10, reload=True):
+    global isLoaded
+    global time
+    global vectors
+    global currentFilename
+    oldvectors = vectors
+    vectors.clear()
+    try:
+        if reload == False:
+            currentFilename = filedialog.askopenfilename(filetypes=(("wave files", "*.wave"), ("All files", "*.*")),
+                title="Open file",
+                initialdir=os.getcwd())
+        f = open(currentFilename)
+        data = f.read()
+        f.close()
+        for n in range(1, accuracy):
+            wave = waveFunction(0, 0)
+            wave.ParseEquation(data, n)
+            vectors.append(wave)
+            continue
+            # r = n * 2 + 1 Square
+            r = eval(data["equation"]["amplitude"]) # Really bad practice, REMOVE ASAP
+            vectors.append(waveFunction(40 * r,
+            eval(data["equation"]["frequency"]),
+            data["equation"]["function"],
+            eval(data["equation"]["direction"])))
+        points.clear()
+        tracePoints.clear()
+        isLoaded = True
+    except:
+        vectors = oldvectors
+
+
+
+
+
+
 # TODO: Add GUI to update curves
 
 # TODO: Update curves while program running
@@ -119,7 +308,12 @@ while running:
             # Open file
             elif event.key == pygame.K_o:
                 LoadVectors(False)
-
+            # Open function
+            elif event.key == pygame.K_f:
+                LoadEquation(100, False)
+            # pause
+            elif event.key == pygame.K_p:
+                paused = not paused
     screen.fill(white)
 
     # Only continue if file is open
@@ -140,10 +334,11 @@ while running:
         if showVectors:
             vectors[v].draw(vectors[v-1].getRadialPos(), showVectorRadius)
 
-    # Add X positions to list
-    points.insert(0, vectors[len(vectors)-1].getRadialPos()[1])
-    if time <= 7:
-        tracePoints.insert(0, vectors[len(vectors)-1].getRadialPos())
+    if not paused:
+        # Add X positions to list
+        points.insert(0, vectors[len(vectors)-1].getRadialPos()[1])
+        if time <= 7:
+            tracePoints.insert(0, vectors[len(vectors)-1].getRadialPos())
 
     # Trim list if it gets too long
     if len(points) > 500:
@@ -171,7 +366,8 @@ while running:
     # Update display (MUST STAY AT END OF LOOP)
     pygame.display.update()
 
-    time += 0.025
+    if not paused:
+        time += 0.025
     clock.tick(FPS)
 
 
