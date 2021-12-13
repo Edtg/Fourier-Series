@@ -38,6 +38,9 @@ vectors = []
 for i in range(8):
     n = i * 2 + 1
     vectors.append(rotatingVector(100 * (4 / (n * math.pi))))
+    # (4 sin((n * 2 + 1)x))
+    # -----------
+    # (n * 2 + 1)
 
 while running:
     for event in pygame.event.get():
