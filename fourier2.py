@@ -24,7 +24,8 @@ tracePoints = []
 centrepos = (200, 300)
 
 vectors = []
-isLoaded = False
+isFunctionLoaded = False
+isEquationLoaded = False
 currentFilename = ""
 
 showVectors = True
@@ -228,7 +229,7 @@ class waveFunction:
 # Direction = Clockwise/Anticlockwise
 
 def LoadVectors(reload=True):
-    global isLoaded
+    global isFunctionLoaded
     global time
     global vectors
     global currentFilename
@@ -247,18 +248,19 @@ def LoadVectors(reload=True):
             vectors.append(waveFunction(v["amplitude"], v["frequency"], v["function"], v["direction"]))
         points.clear()
         tracePoints.clear()
-        isLoaded = True
+        isFunctionLoaded = True
     except:
         vectors = oldvectors
 
 
 def LoadEquation(accuracy=10, reload=True):
-    global isLoaded
+    global isEquationLoaded
     global time
     global vectors
     global currentFilename
     oldvectors = vectors
     vectors.clear()
+    time = 0
     try:
         if reload == False:
             currentFilename = filedialog.askopenfilename(filetypes=(("wave files", "*.wave"), ("All files", "*.*")),
@@ -280,7 +282,7 @@ def LoadEquation(accuracy=10, reload=True):
             eval(data["equation"]["direction"])))
         points.clear()
         tracePoints.clear()
-        isLoaded = True
+        isEquationLoaded = True
     except:
         vectors = oldvectors
 
@@ -304,7 +306,10 @@ while running:
         elif event.type == pygame.KEYDOWN:
             # Reload file
             if event.key == pygame.K_r:
-                LoadVectors(True)
+                if isFunctionLoaded:
+                    LoadVectors(True)
+                elif isEquationLoaded:
+                    LoadEquation(100, True)
             # Open file
             elif event.key == pygame.K_o:
                 LoadVectors(False)
@@ -317,7 +322,7 @@ while running:
     screen.fill(white)
 
     # Only continue if file is open
-    if isLoaded == False:
+    if isFunctionLoaded == False and isEquationLoaded == False:
         pygame.display.update()
         continue
 
